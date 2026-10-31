@@ -1,15 +1,14 @@
 # dsh-task-notifier-desktop
 
-[`@dsh-external/dsh-task-notifier`](../dsh-task-notifier)（Web 端任务通知插件）的**桌面端孪生包**。
-功能一致：任务跑完一轮、或在后台会话完成、或模型需要你手动输入（提问 / 权限审批 / 计划评审）时，
-弹出**系统级通知**（OS 原生 toast），点击直达对应会话。
+DSH 桌面端的任务通知插件。**当前主线版本。** 任务跑完一轮、或在后台会话完成、
+或模型需要你手动输入（提问 / 权限审批 / 计划评审）时，弹出**系统级通知**
+（OS 原生 toast），点击直达对应会话。
 
-单独建包的原因不是洁癖，而是两个宿主本来就是两套运行时：
+包名带 `-desktop`，因为它只面向安装版桌面端（Electron + dsh 0.2.x 线）：
+peer 范围锁在 `^0.2.1-rc.1`，构建对照桌面端打包的 dsh **0.2.1-rc.2**。
 
-- Web profile 跑的是本机源码 checkout（dsh **0.1.7-alpha.2**）；
-- 安装版桌面端（Electron）内置 dsh **0.2.0-rc.2**。
-
-同一个包不可能同时满足两套 peer 版本，而且两边的客户端 API 代际也不同（见下）。
+Web 端的同名插件 `@dsh-external/dsh-task-notifier`（跑 0.1.7-alpha.2 profile）
+**已弃用**，不再维护。下文保留的隔离矩阵与"沿用 Web 端"的记录只作解释用。
 
 ---
 
@@ -28,33 +27,34 @@ loader row 随后被 disable）——插件不是"半加载"，而是**直接消
 
 用桌面端自带的 semver 7.8.5 实测（`tests/desktop-verify.mjs` 里跑了同样的判定）：
 
-| peer 范围 | 0.2.0-rc.2 |
+| peer 范围 | 0.2.1-rc.2 |
 | --- | --- |
-| `^0.1.7-alpha.2`（Web 孪生包） | **false** —— caret 被规范化成 `>=0.1.7-alpha.2 <0.2.0-0` |
-| `^0.2.0-rc.2`（本包） | **true** |
+| `^0.1.7-alpha.2`（已弃用的 Web 包） | **false** —— caret 被规范化成 `>=0.1.7-alpha.2 <0.2.0-0` |
+| `^0.2.1-rc.1`（本包） | **true** |
 
-所以把 Web 包直接装进 desktop profile 会**静默失效**；本包存在的首要目的就是携带
-0.2.0 线的 peer 范围、自己的包身份和自己的构建产物。
+所以 0.1.7 线的包装不进 desktop profile（会**静默失效**）；本包自带 0.2.x 的
+peer 范围、自己的包身份和自己的构建产物。
 
-`tests/desktop-verify.mjs` 同时断言两个方向：闸门**接受本包**、**拒绝 Web 孪生包**（对照组）。
+`tests/desktop-verify.mjs` 同时断言两个方向：闸门**接受本包**、**拒绝 0.1.7 线的包**；
+Web 源码已于 2026-10-17 移除，该对照组在源码缺席时降级为 skip。
 
 ---
 
 ## 2. 隔离矩阵
 
-| 项 | Web 孪生包 | 本包 |
+| 项 | 已弃用的 Web 包 | 本包 |
 | --- | --- | --- |
-| 目录 | `../dsh-task-notifier` | `../dsh-task-notifier-desktop` |
+| 目录 | —（2026-10-17 已移除） | `../dsh-task-notifier-desktop` |
 | 包名 | `@dsh-external/dsh-task-notifier` | `@dsh-external/dsh-task-notifier-desktop` |
-| 版本 | `0.0.1` | `0.2.0-desktop.1` |
-| dsh peers | `^0.1.7-alpha.2` | `^0.2.0-rc.2` |
+| 版本 | `0.0.1` | `0.2.1-desktop.1` |
+| dsh peers | `^0.1.7-alpha.2` | `^0.2.1-rc.1` |
 | loader row id | `task-notifier` | `task-notifier-desktop` |
 | client bundle id | `@dsh-external/dsh-task-notifier` | `@dsh-external/dsh-task-notifier-desktop` |
 | locale 命名空间 | `taskNotifier` | `taskNotifierDesktop` |
 | 侧边栏 slot entry id | `task-notifier-toggle` | `task-notifier-toggle-desktop` |
 | 设置键 | `dsh-task-notifier:settings` | `dsh-task-notifier-desktop:settings` |
 | 去重键前缀 | `dsh-task-notifier:last` | `dsh-task-notifier-desktop:last` |
-| 安装位置 | `profiles/web` | `profiles/desktop` |
+| 安装位置 | — | `profiles/desktop` |
 
 隔离到"设置键"这一层，意味着**即使**将来某个 profile 同时列了两个 bundle，
 也不会出现"同一个开关控制两个插件""去重窗口互相吃掉"这类隐蔽耦合。
@@ -78,7 +78,7 @@ loader row 随后被 disable）——插件不是"半加载"，而是**直接消
 
 ---
 
-## 4. 行为（与 Web 端一致）
+## 4. 行为
 
 - **只在窗口失焦时通知**：`document.hasFocus()` 为真时绝不打扰；
 - **点击通知** → 尝试聚焦窗口 + 打开对应会话（见 §3 与 §10 的托盘限制）；
@@ -91,7 +91,7 @@ loader row 随后被 disable）——插件不是"半加载"，而是**直接消
 
 ### 开关的视觉
 
-与 Web 端保持一致的样式：浅色 1px 边框 + 8px 圆角 + 透明底，`color` 继承侧边栏文字色，
+样式（沿用 Web 版）：浅色 1px 边框 + 8px 圆角 + 透明底，`color` 继承侧边栏文字色，
 只让 **开/关** 那个字带饱和度（绿 / 红）。
 
 > **已回退的实验**：曾按"淡化 / 透明"反馈改过一版（无边框 + `--dsw-alias-label-tertiary` + `opacity:.75`），
@@ -153,7 +153,7 @@ localStorage.setItem('dsh-task-notifier-desktop:settings', JSON.stringify({
 }))
 ```
 
-注意键名带 `-desktop`，与 Web 端配置**互不影响**。
+注意键名带 `-desktop`，与 Web 版配置**互不影响**。
 
 ---
 
@@ -166,7 +166,7 @@ pnpm run typecheck      # host 半边
 node node_modules/typescript/bin/tsc -p tsconfig.client.json   # client 半边（DOM 类型）
 ```
 
-> 比 Web 孪生包多了一个 `tsconfig.client.json`：Web 包的 `typecheck` 只覆盖 host 入口，
+> 比 Web 版多了一个 `tsconfig.client.json`：Web 包的 `typecheck` 只覆盖 host 入口，
 > 浏览器源码从不做类型检查。本包把它补上了（`pnpm run typecheck` 之外单独跑，
 > 因为 client 需要 DOM lib 而 host 需要 node types）。
 

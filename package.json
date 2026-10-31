@@ -1,7 +1,7 @@
 {
   "name": "@dsh-external/dsh-task-notifier-desktop",
   "version": "0.2.1-desktop.1",
-  "description": "Codex-style system notifications for the DSH Desktop app (dsh 0.2.1-rc.1): OS toasts when a task finishes or the model asks for your input (question / approval / plan review). Version-isolated twin of @dsh-external/dsh-task-notifier.",
+  "description": "Codex-style system notifications for the DSH Desktop app (dsh 0.2.1-rc.1): OS toasts when a task finishes or the model asks for your input (question / approval / plan review). The Web build (@dsh-external/dsh-task-notifier) is retired.",
   "type": "module",
   "main": "./lib/index.js",
   "types": "./lib/types/index.d.ts",
