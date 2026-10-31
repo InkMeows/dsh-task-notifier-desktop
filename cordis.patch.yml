@@ -1,0 +1,11 @@
+# dsh-task-notifier-desktop bundle patch: declares its own loader row so the
+# package is part of a profile's tree. The host half is a no-op; being a Loader
+# entry is what lets the package's dsh.client half reach the browser module
+# graph.
+#
+# The row id is deliberately NOT `task-notifier` (the Web twin's row): a
+# distinct row id keeps the two builds from colliding even if a single profile
+# ever listed both bundles.
+- insert:
+    - id: task-notifier-desktop
+      name: '@dsh-external/dsh-task-notifier-desktop'
